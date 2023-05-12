@@ -140,7 +140,7 @@ module.exports = {
                 console.log('--- error ---');
                 console.log(error);
                 jsonObj.success= false;
-
+                data1.success= false;
             }else{
                 if(users == null){
                     jsonObj = {success:false}
@@ -243,27 +243,50 @@ module.exports = {
         var createBy = req_data.createBy;
         var wrkInOutStatus = req_data.wrkInOutStatus;
 
-        const Swt = mongoose.model('workonoffs', swt);
 
+        var dist = distance(37.4940468,127.1209413,latitudeNum,longitudeNum);
+
+        console.log("dist:"+dist);
         var workData = null;
-
         var jsonStr = null;
 
-        workData = new Swt({empNo:empNo,wrkInOutDate:wrkInOutDate,wrkInOutTime:wrkInOutTime, latitudeNum:latitudeNum, longitudeNum:longitudeNum
-            , telno:tel, createBy:createBy, wrkInOutStatus:wrkInOutStatus,usrId:usrId});
-        // 9. 데이터 저장
-        workData.save(function(error, data){
-            if(error){
-                console.log(error);
-                jsonObj = {success:false}
-            }else{
-                jsonObj = {success:true}
-                console.log('Saved!');
+        if(dist < 300) {
 
-                Trans = true;
-            }
-            callback(jsonObj);
-        });
+            const Swt = mongoose.model('workonoffs', swt);
+
+
+            workData = new Swt({
+                empNo: empNo,
+                wrkInOutDate: wrkInOutDate,
+                wrkInOutTime: wrkInOutTime,
+                latitudeNum: latitudeNum,
+                longitudeNum: longitudeNum
+                ,
+                telno: tel,
+                createBy: createBy,
+                wrkInOutStatus: wrkInOutStatus,
+                usrId: usrId
+            });
+            // 9. 데이터 저장
+            workData.save(function (error, data) {
+                if (error) {
+                    console.log(error);
+                    jsonObj = {success: false}
+                } else {
+                    jsonObj = {success: true}
+                    console.log('Saved!');
+
+                    Trans = true;
+                }
+                callback(jsonObj);
+            });
+
+        }else{
+            jsonObj = {success: false}
+            jsonObj.message = '회사에서 멀리 오셨네요~\n퇴근 실패';
+            console.log('300!!');
+            callback(jsonObj)
+        }
 
 /*        if(Trans){
             this.workList(usrId,function(callbackList){

@@ -12,10 +12,16 @@ router.get('/userReg', function(req, res, next) {
   res.render('userReg', { title: '유저등록' });
 });
 
-/* 유저입력 */
+/* 다운로드 */
 router.get('/download', function(req, res, next) {
   res.render('download', { title: '출퇴근앱 다운로드' });
 });
+
+router.get('/json/download', function(req, res, next) {
+  res.render('download', { title: '출퇴근앱 다운로드' });
+});
+
+
 
 /* 출퇴근 조회 */
 router.get('/worklist', function(req, res, next) {
@@ -99,6 +105,7 @@ router.post('/test/api/loginChk', function(req, res, next) {
       returnData.workInOutList = workInfo.workInOutList;
 
       if(userData.userInfo==null){
+        returnData.message = '로그인 실패\n다시 확인해주세요.';
         returnData.success = false;
       }else{
         returnData.success = true;
@@ -134,10 +141,16 @@ router.post('/test/api/saveWorkTime', function(req, res, next) {
       db.saveWorkTime(req,function(callback){
         console.log(callback);
         chkCallback = callback;
-        db.workList(req.body.usrId,function(callback2){
-          chkCallback = callback2;
+
+        if(callback.success){
+          db.workList(req.body.usrId,function(callback2){
+            chkCallback = callback2;
+            res.status(200).json(chkCallback);
+          });
+        }else{
           res.status(200).json(chkCallback);
-        });
+        }
+
 
       });
 
