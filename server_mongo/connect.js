@@ -1,7 +1,7 @@
 // 1. mongoose 모듈 가져오기
 var mongoose = require('mongoose');
 // 2. testDB 세팅
-mongoose.connect('mongodb://localhost:27017/testDB');
+mongoose.connect('mongodb://localhost:27017/workerDB');
 // 3. 연결된 testDB 사용
 var db = mongoose.connection;
 // 4. 연결 실패
@@ -250,7 +250,7 @@ module.exports = {
         var workData = null;
         var jsonStr = null;
 
-        if(dist < 300) {
+        if(dist < 0.3) {
 
             const Swt = mongoose.model('workonoffs', swt);
 
