@@ -1,0 +1,46 @@
+extends head
+
+
+
+block content
+
+    script.
+        const time1 = moment('2021-12-24 12:00:01');
+        const time2 = moment('2021-12-25 12:00:01');
+
+    style.
+      .red{color: red;font-weight: bold}
+    h1= title
+    p
+    .table-responsive
+        table.table.table-striped
+            thead
+                tr
+                    th 사원번호
+                    th 아이디
+                    th 일자
+                    th 출근일시
+                    th 퇴근일시
+                    th 근태시간
+                    th 상태
+            tbody
+                each item in results
+                    tr
+                        td #{item.empNo}
+                        td #{item.usrId}
+                        td #{moment(item.wrkInOutDate).format('YYYY.MM.DD')}
+                        if Number(item.wrkInTime) > 90000
+                            td.red #{moment(item.wrkInOutDate + ' ' + item.wrkInTime).format('HH:mm:ss')}
+                        else
+                            td #{moment(item.wrkInOutDate+' '+item.wrkInTime).format('HH:mm:ss')}
+                        case item.wrkInOutStatus
+                            when 'IN'
+                                td 미등록
+                            default
+                                if Number(item.wrkOutTime) > 180000
+                                    td #{moment(item.wrkInOutDate + ' ' + item.wrkOutTime).format('HH:mm:ss')}
+                                else
+                                    td.red #{moment(item.wrkInOutDate + ' ' + item.wrkOutTime).format('HH:mm:ss')}
+
+                        td #{moment.duration(moment(item.wrkInOutDate + ' ' + item.wrkOutTime).diff(moment(item.wrkInOutDate + ' ' + item.wrkInTime))).asHours().toFixed(3)}
+                        td #{item.wrkInOutStatus}

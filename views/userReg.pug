@@ -1,0 +1,30 @@
+extends head
+
+block content
+    .container
+            .row
+                .col-md-4.offset-md-4
+                    h1.text-center 출퇴 정보등록
+                    form(method="POST" action="/signup")
+                        .form-group
+                            label(for="empNo") EmpNo
+                            input#empNo.form-control(type="text", name="empNo" required)
+                        .form-group
+                            label(for="name") Name
+                            input#name.form-control(type="text", name="name" required)
+                        .form-group
+                            label(for="telNo") TelNo('-' 미포함)
+                            input#telNo.form-control(type="text", name="telNo" required)
+                        .form-group
+                            label(for="workInTime") In_Time(숫자만)
+                            input#workInTime.form-control(type="number", name="workInTime" required)
+                        .form-group
+                            label(for="workOutTime") In_Time(숫자만)
+                            input#workOutTime.form-control(type="number", name="workOutTime" required)
+                        .form-group
+                            label(for="password") Password
+                            input#password.form-control(type="password", name="password" required)
+                        .form-group
+                            label(for="confirm-password") Confirm Password
+                            input#confirm-password.form-control(type="password", name="confirm-password" required)
+                        button.btn.btn-primary.btn-block(type="submit") Sign Up
