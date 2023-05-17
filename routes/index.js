@@ -26,13 +26,19 @@ router.get('/json/download', function(req, res, next) {
 /* 출퇴근 조회 */
 router.get('/worklist', function(req, res, next) {
 
-  db.webworkList(req.query.id,function(callback){
-    console.log("================================");
-    console.log(req.body);
-    console.log("================================");
-    const results = callback.workInOutList;
-    res.render('workInOutList', { title: '출퇴근 리스트' , results,moment: require('moment')});
-  });
+  try{
+    db.webworkList(req.query.id,function(callback){
+      console.log("================================");
+      console.log(req.body);
+      console.log("================================");
+      const results = callback.workInOutList;
+      res.render('workInOutList', { title: '출퇴근 리스트' , results,moment: require('moment')});
+    });
+
+  }catch (err) {
+    res.status(500).json({"success":false})
+  }
+
 
 
 });
@@ -82,7 +88,7 @@ router.post('/test/api/loginChk', function(req, res, next) {
 //  var name = 'Hong';
 //  var pw = '1';
   var tel = req.param('telNo');
-
+  console.log(tel);
 /*  var returnData = {"empRid":"1000","empName":"test","empNo":"1001","prmryDivNm":"eeee","position":"121","success":true};
   console.log(typeof returnData);
   console.log(name);
@@ -121,6 +127,11 @@ router.post('/test/api/loginChk', function(req, res, next) {
 
 });
 
+router.post('/api/logout', function(req, res, next) {
+  var returnData = new Object();
+  returnData.success = true;
+  res.status(200).json(returnData)
+});
 
 /* 출퇴근 체크 */
 router.post('/test/api/saveWorkTime', function(req, res, next) {
