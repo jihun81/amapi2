@@ -16,6 +16,10 @@
     "pug": "2.0.0-beta11",
     "mongoose": "^6.11.0",
     "moment": "^2.29.4",
-    "clean-webpack-plugin": "^4.0.0"
+    "clean-webpack-plugin": "^4.0.0",
+    "oracledb": "^5.5.0",
+    "firebase-admin": "^10.3.0",
+    "node-cron": "^3.0.2",
+    "axios": "^0.27.2"
   }
 }

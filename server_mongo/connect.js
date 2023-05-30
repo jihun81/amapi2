@@ -15,6 +15,8 @@ db.once('open', function() {
 
 //시간
 const moment = require('moment');
+//FCM
+var fcm = require('../server_mongo/fcmPush');
 
 //위경도 계산
 const distance =  function (lat1, lon1, lat2, lon2, unit = "km") {
@@ -53,6 +55,7 @@ var user = mongoose.Schema({
     telno : 'string',
     workInTime : 'string',
     workOutTime : 'string',
+    memo : 'string',
     createDate : {type: Date, default: Date.now},
     createBy : 'string'
 
@@ -73,11 +76,48 @@ var swt = mongoose.Schema({
 
 });
 
+
+//출퇴근
+var uuidtoken = mongoose.Schema({
+    uuid : {
+        type: String,
+        required: true,
+        unique: true
+    },
+    id : "string",
+    createDate : {type: Date, default: Date.now},
+});
+
 var lwt = mongoose.Schema({
     name : 'string',
     address : 'string',
     age : 'number'
 });
+
+//푸쉬 토큰
+var push = mongoose.Schema({
+
+    token : {
+        type: String,
+        required: true,
+        unique: true
+    },
+    id : "string",
+    createDate : {type: Date, default: Date.now},
+
+});
+
+
+//공휴일
+var holiday = mongoose.Schema({
+    dateKind : 'string',
+    dateName :  'string',
+    isHoliday :  'string',
+    locdate : 'string',
+    seq : 'string'
+
+});
+
 
 const Student = mongoose.model('test2', student);
 
@@ -93,7 +133,7 @@ module.exports = {
 
         if(code1=='user'){
             const User = mongoose.model('users', user);
-            newStudent = new User({empRid:req.body.name,empName:req.body.name,empNo:req.body.empNo, pw:req.body.password, telno:req.body.telNo,workInTime:req.body.workInTime,workOutTime:req.body.workOutTime, createBy:req.body.name});
+            newStudent = new User({empRid:req.body.name,empName:req.body.name,empNo:req.body.empNo, pw:req.body.password, telno:req.body.telNo,workInTime:req.body.workInTime,workOutTime:req.body.workOutTime,memo:req.body.memo, createBy:req.body.name});
         }else{
             newStudent = new Student({name:'Hong Gil Dong922222', address:'서울시 강남구 논현동9999', age:'11'});
         }
@@ -192,6 +232,45 @@ module.exports = {
 
     },
 
+    loginIosChk : function (name, pw, telno,callback) {
+    console.log("loginIosChk");
+
+    var data1 = new Object(); // 디테일 데이터
+    console.log(telno);
+    const User = mongoose.model('users', user);
+
+    User.findOne({empRid:name, pw:pw},{_id:0,empRid:1,empName:1,empNo:1,workInTime:1,workOutTime:1},function(error, users){
+        console.log('--- Read all ---');
+
+        var jsonStr = null;
+        var jsonObj = {};
+
+        if(error){
+            console.log('--- error ---');
+            console.log(error);
+            jsonObj.success= false;
+            data1.success= false;
+        }else{
+            if(users == null){
+                jsonObj = {success:false}
+            }else{
+                jsonStr = JSON.stringify(users); //객체를 JSON 문자열로 변환
+                jsonObj = JSON.parse(jsonStr); //문자를 다시 json 형태로 객체로 변환
+                console.log(users);
+                jsonObj.success= true;
+
+                data1.success= true;
+                data1.userInfo= users;
+            }
+
+            //        console.log(JSON.stringify(temp3));
+        }
+        callback(data1);
+    });
+
+
+    },
+
     update : function () {
         console.log("update");
 
@@ -250,7 +329,7 @@ module.exports = {
         var workData = null;
         var jsonStr = null;
 
-        if(dist < 0.3) {
+        if(dist < 300) {
 
             const Swt = mongoose.model('workonoffs', swt);
 
@@ -483,6 +562,60 @@ module.exports = {
         callback(data1);
 
     },
+    uuIdChkSave: function (req, callback) {
+        console.log("uuIdChkSave");
+        const Uuid = mongoose.model('uuidToken', uuidtoken);
+
+        var data1 = new Object(); // 디테일 데이터
+        console.log(req);
+        Uuid.findOneAndUpdate(
+            { uuid: req.query.telNo, id:req.query.userId}, // 검색 조건
+            { $set: { id: req.query.userId } }, // 업데이트할 필드
+            { upsert: true, new: true }, // 옵션: 존재하지 않는 경우 문서를 삽입하고, 업데이트된 문서 반환
+            (err, doc) => {
+                if (err) {
+                    console.log(err);
+                    data1.success = false;
+                    callback(data1);
+                    console.log(data1);
+                } else {
+                    data1.success = true;
+                    console.log(doc);
+                    callback(data1);
+                    console.log(data1);
+                }
+            }
+        );
+
+
+    },
+    pushTokenSave: function (req, callback) {
+        console.log("pushTokenSave");
+        const Push = mongoose.model('pushToken', push);
+
+        var data1 = new Object(); // 디테일 데이터
+        console.log(req);
+        Push.findOneAndUpdate(
+            { id:req.body.token.trimEnd()}, // 검색 조건
+            { $set: { token: req.body.token,id:req.body.empNo.trimEnd()} }, // 업데이트할 필드
+            { upsert: true, new: true }, // 옵션: 존재하지 않는 경우 문서를 삽입하고, 업데이트된 문서 반환
+            (err, doc) => {
+                if (err) {
+                    console.log(err);
+                    data1.success = false;
+                    callback(data1);
+                    console.log(data1);
+                } else {
+                    data1.success = true;
+                    console.log(doc);
+                    callback(data1);
+                    console.log(data1);
+                }
+            }
+        );
+
+
+    },
 
     delete : function () {
         console.log("delete");
@@ -501,4 +634,300 @@ module.exports = {
             console.log('--- deleted ---');
         });
     },
+
+    WorkPushSend : function (name,callback) {
+        console.log("WorkPushSend");
+
+        /*        var dist = distance(37.4940468,127.1209413,37.4926465,127.1179969);
+
+                console.log("dist : "+dist);*/
+
+        var data1 = new Object(); // 디테일 데이터
+
+        const User = mongoose.model('users', user);
+        const today_date = moment().format('YYYYMMDD');
+
+
+        User.aggregate([
+            {
+                $match: {
+                    empNo: { $exists: true }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'pushtokens',
+                    localField: 'empNo',
+                    foreignField: 'id',
+                    as: 'b'
+                }
+            },
+            {
+                $unwind: '$b'
+            },
+   /*         {
+                $lookup: {
+                    from: 'workonoffs',
+                    localField: 'empNo',
+                    foreignField: 'empNo',
+                    as: 'c'
+                }
+            },*/
+            /*
+            {
+                $unwind: {
+                    path: '$c',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $match: {
+                    'c.wrkInOutDate': '20230523',
+                    'c.wrkInOutStatus': 'IN'
+                }
+            },*/
+            {
+                $project: {
+                    'b.token': 1
+                }
+            }
+        ])
+            .exec((err, results) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(results);
+                    data1.success= true;
+                    data1.workInOutList= results;
+                    for (let i = 0; i < results.length; i++) {
+                        const item = results[i];
+                        console.log(item.b.token);
+                        fcm.sendPushNotification(item.b.token,"출근체크확인","출근체크하셨나요?");
+                    }
+
+
+                    callback(data1);
+                }
+            });
+
+
+
+    /*    const workOff = mongoose.model('workonoffs', swt);
+
+        workOff.aggregate([
+            {
+                $match: {
+                    wrkInOutDate: '20230523'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'empNo',
+                    foreignField: 'empNo',
+                    as: 'a'
+                }
+            },
+            {
+                $unwind: '$a'
+            },
+            {
+                $lookup: {
+                    from: 'pushtokens',
+                    localField: 'a.empNo',
+                    foreignField: 'id',
+                    as: 'b'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$b',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $project: {
+                    'b.token': 1
+                }
+            }
+        ])
+            .exec((err, results) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log("==============");
+                    console.log(results);
+                    data1.success= true;
+                    data1.workInOutList= results;
+                    for (let i = 0; i < results.length; i++) {
+                        const item = results[i];
+                        console.log(item.b.token);
+                        fcm.sendPushNotification(item.b.token,"출근체크확인","출근체크하셨나요?");
+                    }
+
+
+                    callback(data1);
+                }
+            });*/
+
+      /*  User.aggregate([
+            {
+                $lookup: {
+                    from: 'pushtokens',
+                    localField: 'empNo',
+                    foreignField: 'id',
+                    as: 'b',
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ['$empNo', '$$ROOT.id'] }
+                            }
+                        },
+                        {
+                            $project: {
+                                token: 1 // 필요한 경우 다른 필드들을 추가
+                            }
+                        }
+                    ],
+                    preserveNullAndEmptyArrays: true
+                }
+            }
+        ])
+            .exec((err, results) => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(results);
+                }
+            });
+*/
+
+    },
+    WorkPushSends : function (inout,inoutTime) {
+        console.log("WorkPushSend");
+
+        /*        var dist = distance(37.4940468,127.1209413,37.4926465,127.1179969);
+
+                console.log("dist : "+dist);*/
+
+        var data1 = new Object(); // 디테일 데이터
+
+        var title = '';
+        var body = '';
+
+        if(inout=='IN'){
+            title = '출근체크확인';
+            body = '출근체크하셨나요?\n깜박하지 말고 체크해주세요.';
+
+        }else{
+            title = '퇴근체크확인';
+            body = '퇴근체크하셨나요?\n깜박하지 말고 체크해주세요.';
+        }
+
+        const User = mongoose.model('users', user);
+        const today_date = moment().format('YYYYMMDD');
+
+        const Holiday = mongoose.model('holidays', holiday);
+        Holiday.findOne({locdate:today_date, isHoliday:'Y'},{_id:0,dateName:1,locdate:1},function(error, holidays){
+            console.log('--- Read all ---');
+
+            if(error){
+                console.log('--- error ---');
+                console.log(error);
+            }else{
+                if(holidays == null){
+                    console.log('==공휴일X==');
+                    console.log(holidays);
+                    //푸시 전송 조회
+                    User.aggregate([
+                        {
+                            $match: {
+                                empNo: { $exists: true },
+                                $or: [
+                                    { workInTime: inoutTime },
+                                    { workOutTime: inoutTime }
+                                ]
+                            }
+                        },
+                        {
+                            $lookup: {
+                                from: 'pushtokens',
+                                localField: 'empNo',
+                                foreignField: 'id',
+                                as: 'b'
+                            }
+                        },
+                        {
+                            $unwind: '$b'
+                        },
+
+                        {
+                            $project: {
+                                'b.token': 1
+                            }
+                        }
+                    ])
+                        .exec((err, results) => {
+                            if (err) {
+                                console.log(err);
+                            } else {
+                                console.log(results);
+
+                                for (let i = 0; i < results.length; i++) {
+                                    const item = results[i];
+                                    console.log(item.b.token);
+                                    fcm.sendPushNotification(item.b.token,title,body); //푸시 전송
+                                }
+
+
+
+                            }
+                        });
+                    //푸시 엔드
+
+                }else{
+                    console.log('==공휴일==');
+                    console.log(holidays);
+                }
+
+                //        console.log(JSON.stringify(temp3));
+            }
+        });
+
+
+
+
+
+
+
+    },
+
+    holiDaySave : function (req) {
+
+        console.log("holiDaySave");
+
+//        var holiday_data = null;
+        const Holiday = mongoose.model('holiday', holiday);
+   //     holiday_data = new Holiday({empRid:req.body.name,empName:req.body.name,empNo:req.body.empNo, pw:req.body.password, telno:req.body.telNo,workInTime:req.body.workInTime,workOutTime:req.body.workOutTime,memo:req.body.memo, createBy:req.body.name});
+
+        for(let i = 0;i < req.length; i++){
+            Holiday.findOneAndUpdate(
+                { locdate: req[i].locdate, seq:req[i].seq}, // 검색 조건
+                { $set: { dateKind: req[i].dateKind, dateName: req[i].dateName, isHoliday: req[i].isHoliday, locdate: req[i].locdate, seq: req[i].seq} }, // 업데이트할 필드
+                { upsert: true, new: true }, // 옵션: 존재하지 않는 경우 문서를 삽입하고, 업데이트된 문서 반환
+                (err, doc) => {
+                    if (err) {
+                        console.log(err);
+                    } else {
+                        console.log('success_'+i);
+                    }
+                }
+            );
+
+        }
+
+// 9. 데이터 저장
+
+    },
+
 }

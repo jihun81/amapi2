@@ -7,24 +7,45 @@ block content
                     h1.text-center 출퇴 정보등록
                     form(method="POST" action="/signup")
                         .form-group
-                            label(for="empNo") EmpNo
+                            label(for="empNo") EmpNo(없는 경우 핸드폰번호로 뒷자리 8자리로 해주세요)
                             input#empNo.form-control(type="text", name="empNo" required)
                         .form-group
-                            label(for="name") Name
+                            label(for="name") ID(Name)
                             input#name.form-control(type="text", name="name" required)
                         .form-group
                             label(for="telNo") TelNo('-' 미포함)
                             input#telNo.form-control(type="text", name="telNo" required)
                         .form-group
-                            label(for="workInTime") In_Time(숫자만)
-                            input#workInTime.form-control(type="number", name="workInTime" required)
+                            label(for="workInTime") 출근시간
+                            select#workInTime.form-control(type="text", name="workInTime" required)
+                                option(value='0800') 08:00
+                                option(value='0830') 08:30
+                                option(value='0900') 09:00
+                                option(value='0930') 09:30
+                                option(value='1030') 10:00
                         .form-group
-                            label(for="workOutTime") In_Time(숫자만)
-                            input#workOutTime.form-control(type="number", name="workOutTime" required)
+                            label(for="workOutTime") 퇴근시간
+                            select#workOutTime.form-control(type="text", name="workOutTime" required)
+                                option(value='1700') 17:00
+                                option(value='1730') 17:30
+                                option(value='1800') 18:00
+                                option(value='1830') 18:30
+                                option(value='1900') 19:00
+
+
+                        //.form-group
+                            //label(for="workInTime") In_Time(숫자만)
+                            //input#workInTime2.form-control(type="number", name="workInTime" required)
+                        //.form-group
+                            //label(for="workOutTime") Out_Time(숫자만)
+                            //input#workOutTime.form-control(type="number", name="workOutTime" required)
                         .form-group
                             label(for="password") Password
                             input#password.form-control(type="password", name="password" required)
                         .form-group
                             label(for="confirm-password") Confirm Password
                             input#confirm-password.form-control(type="password", name="confirm-password" required)
+                        .form-group
+                            label(for="memo") 메모(아이폰 사용시 UDID)
+                            input#memo.form-control(type="text", name="memo")
                         button.btn.btn-primary.btn-block(type="submit") Sign Up
